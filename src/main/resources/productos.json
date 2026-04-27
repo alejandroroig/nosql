@@ -1,0 +1,22 @@
+[
+  { "nombre": "Televisor Samsung", "categoria": "Electrónica", "precio": 450.50, "especificaciones": { "pulgadas": "55", "resolucion": "4K", "tipo_pantalla": "OLED" } },
+  { "nombre": "Camiseta Básica", "categoria": "Ropa", "precio": 15.00, "especificaciones": { "talla": "M", "color": "Azul", "material": "Algodón" } },
+  { "nombre": "Zapatillas Nike", "categoria": "Calzado", "precio": 85.00, "especificaciones": { "talla": "42", "tipo": "Running" } },
+  { "nombre": "Microondas LG", "categoria": "Hogar", "precio": 90.00, "especificaciones": { "potencia": "800W", "capacidad": "20L" } },
+  { "nombre": "MacBook Air", "categoria": "Electrónica", "precio": 1100.00, "especificaciones": { "ram": "8GB", "almacenamiento": "256GB SSD", "procesador": "M1" } },
+  { "nombre": "Pantalón Vaquero", "categoria": "Ropa", "precio": 40.00, "especificaciones": { "talla": "32", "corte": "Slim Fit" } },
+  { "nombre": "Lámpara de Escritorio", "categoria": "Hogar", "precio": 25.00, "especificaciones": { "tipo_luz": "LED", "regulable": "Sí" } },
+  { "nombre": "iPhone 13", "categoria": "Electrónica", "precio": 800.00, "especificaciones": { "color": "Blanco", "capacidad": "128GB" } },
+  { "nombre": "Sofá 3 Plazas", "categoria": "Hogar", "precio": 350.00, "especificaciones": { "material": "Tela", "color": "Gris", "largo": "200cm" } },
+  { "nombre": "Libro 'El Quijote'", "categoria": "Ocio", "precio": 20.00, "especificaciones": { "autor": "Miguel de Cervantes", "paginas": "863", "tapa": "Dura" } },
+  { "nombre": "Mancuernas 5kg", "categoria": "Deportes", "precio": 30.00, "especificaciones": { "peso_total": "10kg", "material": "Neopreno" } },
+  { "nombre": "Auriculares Sony", "categoria": "Electrónica", "precio": 150.00, "especificaciones": { "inalambrico": "Sí", "cancelacion_ruido": "Sí" } },
+  { "nombre": "Silla de Oficina", "categoria": "Hogar", "precio": 120.00, "especificaciones": { "ergonomica": "Sí", "soporta_peso": "120kg" } },
+  { "nombre": "Juego de Mesa Catan", "categoria": "Ocio", "precio": 45.00, "especificaciones": { "jugadores": "3-4", "edad_minima": "10 años" } },
+  { "nombre": "Chaqueta de Invierno", "categoria": "Ropa", "precio": 75.00, "especificaciones": { "talla": "L", "impermeable": "Sí" } },
+  { "nombre": "Cafetera Nespresso", "categoria": "Hogar", "precio": 60.00, "especificaciones": { "tipo": "Cápsulas", "presion": "19 bares" } },
+  { "nombre": "Reloj Inteligente Garmin", "categoria": "Electrónica", "precio": 200.00, "especificaciones": { "gps": "Sí", "resistencia_agua": "50m" } },
+  { "nombre": "Esterilla de Yoga", "categoria": "Deportes", "precio": 18.00, "especificaciones": { "grosor": "6mm", "color": "Morado" } },
+  { "nombre": "Gafas de Sol", "categoria": "Accesorios", "precio": 50.00, "especificaciones": { "polarizadas": "Sí", "proteccion": "UV400" } },
+  { "nombre": "Monitor Dell 27\"", "categoria": "Electrónica", "precio": 250.00, "especificaciones": { "pulgadas": "27", "tasa_refresco": "144Hz", "panel": "IPS" } }
+]

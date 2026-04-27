@@ -16,6 +16,7 @@ import java.io.InputStream;
 import java.net.URI;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.StreamSupport;
 
 public class EjercicioDynamo {
@@ -50,10 +51,6 @@ public class EjercicioDynamo {
             // 4. INSERCIÓN. Creamos un nuevo producto y lo insertamos
             System.out.println("\n--- INSERTANDO UN PRODUCTO NUEVO ---");
             ProductoDynamo nuevoProducto = new ProductoDynamo();
-
-            // A diferencia de Mongo, en DynamoDB es mejor saber el ID para luego buscarlo directamente
-            String idConocido = "RATON-001";
-            nuevoProducto.setId(idConocido);
             nuevoProducto.setNombre("Ratón Gaming Logitech");
             nuevoProducto.setCategoria("Electrónica");
             nuevoProducto.setPrecio(60.00);
@@ -75,30 +72,38 @@ public class EjercicioDynamo {
 
             // DynamoDB no tiene una función rápida equivalente a countDocuments(),
             // así que contamos los elementos que nos devuelve el scan.
-            long totalProductos = StreamSupport.stream(tabla.scan().items().spliterator(), false).count();
+            long totalProductos = tabla.scan().items().stream().count();
             System.out.println("\nTotal de productos tras la inserción: " + totalProductos);
 
-            // 6. ACTUALIZACIÓN. Vamos a actualizar el precio del producto insertado
+            // 6. ACTUALIZACIÓN. DynamoDB quiere el la clave de partición, pero solo tenemos el nombre
             System.out.println("\n--- ACTUALIZANDO UN PRODUCTO ---");
-            // Primero lo buscamos usando su Clave Primaria (ID)
-            Key claveBusqueda = Key.builder().partitionValue(idConocido).build();
-            ProductoDynamo productoAActualizar = tabla.getItem(r -> r.key(claveBusqueda));
 
-            if (productoAActualizar != null) {
-                // Modificamos el objeto en Java y lo reemplazamos en la base de datos
-                productoAActualizar.setPrecio(49.99);
-                tabla.updateItem(productoAActualizar);
-                System.out.println("Precio actualizado para: " + productoAActualizar.getNombre() + " a " + productoAActualizar.getPrecio() + "€");
-            }
+            // Paso 1: Buscar el producto manualmente recorriendo la tabla
+            Optional<ProductoDynamo> productoBuscado = tabla.scan().items().stream()
+                    .filter(p -> "Ratón Gaming Logitech".equals(p.getNombre()))
+                    .findFirst();
+
+            // PASO 2: Si está presente, lo modificamos y actualizamos
+            productoBuscado.ifPresentOrElse(
+                    p -> {
+                        p.setPrecio(49.99);
+                        tabla.updateItem(p);
+                        System.out.println("Precio actualizado para: " + p.getNombre() + " a " + p.getPrecio() + "€");
+                    },
+                    () -> System.out.println("No se ha encontrado el producto.")
+            );
 
             // 7. BORRADO. Eliminamos el producto insertado
             System.out.println("\n--- BORRANDO UN PRODUCTO ---");
-            // Borramos usando de nuevo su Clave Primaria
-            tabla.deleteItem(r -> r.key(claveBusqueda));
-            System.out.println("Producto 'Ratón Gaming Logitech' eliminado del catálogo.");
+            // Si el producto existe, ejecutamos el borrado
+            productoBuscado.ifPresent(p -> {
+                Key claveParaBorrar = Key.builder().partitionValue(p.getId()).build();
+                tabla.deleteItem(r -> r.key(claveParaBorrar));
+                System.out.println("Producto '" + p.getNombre() + "' eliminado del catálogo.");
+            });
 
             // 8. LEER. Comprobamos el número total de productos tras el borrado
-            long totalFinal = StreamSupport.stream(tabla.scan().items().spliterator(), false).count();
+            long totalFinal = tabla.scan().items().stream().count();
             System.out.println("\nTotal de productos tras todas las operaciones: " + totalFinal);
 
             // 9. VACIAR LA TABLA (Para volver a probar desde cero)

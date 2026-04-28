@@ -16,27 +16,23 @@ import java.io.InputStream;
 import java.net.URI;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
-import java.util.stream.StreamSupport;
 
 public class EjercicioDynamo {
     static void main(String[] args) {
-        // 1. Configuramos las credenciales falsas para el entorno local
+        // 1. Configuramos las credenciales
         AwsSessionCredentials credenciales = AwsSessionCredentials.create("accessKey", "secretKey",  "sessionToken");
 
-        // 2. Conectamos a nuestro Docker usando el cliente estándar y el mejorado
+        // 2. Conectamos a nuestro entorno
         try (DynamoDbClient clienteBase = DynamoDbClient.builder()
                 .endpointOverride(URI.create("http://localhost:8000")) // IMPORTANTE!!! COMENTA ESTA LÍNEA PARA CONECTAR A TU CUENTA DE AWS
                 .credentialsProvider(StaticCredentialsProvider.create(credenciales))
-                .region(Region.US_EAST_1) // La región no importa en local, pero es obligatoria. En AWS, pon la que corresponda a tu tabla
+                .region(Region.US_EAST_1)
                 .build()) {
 
-            // El cliente mejorado nos permite trabajar con objetos Java directamente, sin tener que mapear manualmente cada campo
             DynamoDbEnhancedClient clienteMejorado = DynamoDbEnhancedClient.builder()
                     .dynamoDbClient(clienteBase)
                     .build();
 
-            // Referencia a la tabla
             DynamoDbTable<ProductoDynamo> tabla = clienteMejorado.table("productos", TableSchema.fromBean(ProductoDynamo.class));
 
             // 3. INSERCIÓN INICIAL. Intentamos crear la tabla. Si ya existe, saltará una excepción y lo ignoramos.
@@ -62,45 +58,45 @@ public class EjercicioDynamo {
 
             // 5. LEER. Imprimimos los datos para comprobar que funciona
             System.out.println("\n--- CATÁLOGO EN DYNAMODB ---");
-            tabla.scan().items().forEach(producto ->
-                    System.out.println("- [" + producto.getId() + "] "
-                            + producto.getNombre()
-                            + " (" + producto.getCategoria() + ")"
-                            + " - Precio: " + producto.getPrecio() + "€"
-                            + " -> Especificaciones: " + producto.getEspecificaciones())
-            );
+            for (ProductoDynamo producto : tabla.scan().items()) {
+                System.out.println("- [" + producto.getId() + "] "
+                        + producto.getNombre()
+                        + " (" + producto.getCategoria() + ")"
+                        + " - Precio: " + producto.getPrecio() + "€"
+                        + " -> Especificaciones: " + producto.getEspecificaciones());
+            }
 
-            // DynamoDB no tiene una función rápida equivalente a countDocuments(),
-            // así que contamos los elementos que nos devuelve el scan.
+            // DynamoDB no tiene una función rápida equivalente a countDocuments() --> contamos elementos de scan
             long totalProductos = tabla.scan().items().stream().count();
             System.out.println("\nTotal de productos tras la inserción: " + totalProductos);
 
-            // 6. ACTUALIZACIÓN. DynamoDB quiere el la clave de partición, pero solo tenemos el nombre
+            // 6. ACTUALIZACIÓN. DynamoDB quiere la clave de partición, pero solo tenemos el nombre
             System.out.println("\n--- ACTUALIZANDO UN PRODUCTO ---");
 
             // Paso 1: Buscar el producto manualmente recorriendo la tabla
-            Optional<ProductoDynamo> productoBuscado = tabla.scan().items().stream()
-                    .filter(p -> "Ratón Gaming Logitech".equals(p.getNombre()))
-                    .findFirst();
+            ProductoDynamo productoBuscado = null;
+            for (ProductoDynamo p : tabla.scan().items()) {
+                if (p.getNombre().equals("Ratón Gaming Logitech")) {
+                    productoBuscado = p;
+                    break;
+                }
+            }
 
             // PASO 2: Si está presente, lo modificamos y actualizamos
-            productoBuscado.ifPresentOrElse(
-                    p -> {
-                        p.setPrecio(49.99);
-                        tabla.updateItem(p);
-                        System.out.println("Precio actualizado para: " + p.getNombre() + " a " + p.getPrecio() + "€");
-                    },
-                    () -> System.out.println("No se ha encontrado el producto.")
-            );
+            if (productoBuscado != null) {
+                productoBuscado.setPrecio(49.99);
+                tabla.updateItem(productoBuscado);
+                System.out.println("Precio actualizado para: " + productoBuscado.getNombre() + " a " + productoBuscado.getPrecio() + "€");
+            }
 
             // 7. BORRADO. Eliminamos el producto insertado
             System.out.println("\n--- BORRANDO UN PRODUCTO ---");
             // Si el producto existe, ejecutamos el borrado
-            productoBuscado.ifPresent(p -> {
-                Key claveParaBorrar = Key.builder().partitionValue(p.getId()).build();
-                tabla.deleteItem(r -> r.key(claveParaBorrar));
-                System.out.println("Producto '" + p.getNombre() + "' eliminado del catálogo.");
-            });
+            if (productoBuscado != null) {
+                Key claveParaBorrar = Key.builder().partitionValue(productoBuscado.getId()).build();
+                tabla.deleteItem(claveParaBorrar);
+                System.out.println("Producto '" + productoBuscado.getNombre() + "' eliminado del catálogo.");
+            }
 
             // 8. LEER. Comprobamos el número total de productos tras el borrado
             long totalFinal = tabla.scan().items().stream().count();

@@ -21,12 +21,12 @@ import static org.bson.codecs.configuration.CodecRegistries.fromRegistries;
 
 public class EjercicioMongo {
 
-    static void main(String[] args) {
+    public static void main(String[] args) {
         // 1. Configuramos los Codecs para trabajar con objetos Java
         CodecProvider codecProvider = PojoCodecProvider.builder().automatic(true).build();
         CodecRegistry codecRegistry = fromRegistries(getDefaultCodecRegistry(), fromProviders(codecProvider));
 
-        // 2. Conectamos a nuestro Docker (sustituye con la ruta de tu mongo Atlas o el servidor que utilices)
+        // 2. Conectamos a nuestro entorno (sustituye con la ruta de tu mongo Atlas o el servidor que utilices)
         try (MongoClient mongoClient = MongoClients.create("mongodb://localhost:27017")) {
             MongoDatabase database = mongoClient.getDatabase("ecommerce").withCodecRegistry(codecRegistry);
             MongoCollection<ProductoMongo> coleccion = database.getCollection("productos", ProductoMongo.class);
@@ -35,7 +35,7 @@ public class EjercicioMongo {
             if (coleccion.countDocuments() == 0) {
                 System.out.println("La colección está vacía. Leyendo JSON...");
                 cargarDatosDesdeJson(coleccion);
-            } else { // Si no, saltamos esta parte para evitar duplicados.
+            } else {
                 System.out.println("La base de datos ya contiene " + coleccion.countDocuments() + " productos. Saltando inserción.");
             }
 
@@ -51,24 +51,22 @@ public class EjercicioMongo {
             coleccion.insertOne(nuevoProducto);
             System.out.println("Insertado: " + nuevoProducto.getNombre());
 
-            // 5. LEER. Imprimimos los datos para comprobar que funciona
+            // 5. LEER. Imprimimos los datos del catálogo
             System.out.println("\n--- CATÁLOGO EN MONGODB ---");
-            coleccion.find().forEach(producto ->
-                    System.out.println("- [" + producto.getId() + "] "
-                            + producto.getNombre()
-                            + " (" + producto.getCategoria() + ")"
-                            + " - Precio: " + producto.getPrecio() + "€"
-                            + " -> Especificaciones: " + producto.getEspecificaciones())
-            );
+            for (ProductoMongo producto : coleccion.find()) {
+                System.out.println("- [" + producto.getId() + "] "
+                        + producto.getNombre()
+                        + " (" + producto.getCategoria() + ")"
+                        + " - Precio: " + producto.getPrecio() + "€"
+                        + " -> Especificaciones: " + producto.getEspecificaciones());
+            }
             System.out.println("\nTotal de productos tras la inserción: " + coleccion.countDocuments());
 
-            // 6. ACTUALIZACIÓN. Vamos a actualizar el precio del producto insertado
+            // 6. ACTUALIZACIÓN. Actualizamos el precio del producto insertado
             System.out.println("\n--- ACTUALIZANDO UN PRODUCTO ---");
-            // Primero lo buscamos
             ProductoMongo productoAActualizar = coleccion.find(eq("nombre", "Ratón Gaming Logitech")).first();
 
             if (productoAActualizar != null) {
-                // Modificamos el objeto en Java y lo reemplazamos en la base de datos
                 productoAActualizar.setPrecio(49.99);
                 coleccion.replaceOne(eq("nombre", "Ratón Gaming Logitech"), productoAActualizar);
                 System.out.println("Precio actualizado para: " + productoAActualizar.getNombre() + " a " + productoAActualizar.getPrecio() + "€");
@@ -76,7 +74,6 @@ public class EjercicioMongo {
 
             // 7. BORRADO. Eliminamos el producto insertado
             System.out.println("\n--- BORRANDO UN PRODUCTO ---");
-            // Vamos a borrar un producto que venía en el JSON (ej. la Camiseta Básica)
             coleccion.deleteOne(eq("nombre", "Ratón Gaming Logitech"));
             System.out.println("Producto 'Ratón Gaming Logitech' eliminado del catálogo.");
 

@@ -1,6 +1,6 @@
 # Operaciones CRUD en NoSQL (MongoDB y DynamoDB)
 
-Este proyecto es una introducción práctica a las bases de datos NoSQL. Implementamos un catálogo de productos realizando operaciones CRUD completas (Crear, Leer, Actualizar, Borrar) en dos de motores los de bases de datos NoSQL más utilizados: **MongoDB** y **Amazon DynamoDB**.
+Este proyecto es una introducción práctica a las bases de datos NoSQL. Implementamos un catálogo de productos realizando operaciones CRUD completas (Crear, Leer, Actualizar, Borrar) en dos de los motores de bases de datos NoSQL más utilizados: **MongoDB** y **Amazon DynamoDB**.
 
 ---
 
